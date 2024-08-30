@@ -1,3 +1,6 @@
+import os
+import sys
+from collections import deque
 
 nytimes_com = '''
 This New Liquid Is Magnetic, and Mesmerizing
@@ -34,12 +37,76 @@ Twitter and Square Chief Executive Officer Jack Dorsey
  Tuesday, a signal of the strong ties between the Silicon Valley giants.
 '''
 
-websites = {'bloomberg.com': bloomberg_com, 'nytimes.com': nytimes_com}
 
-while True:
-    name = input()
+def try_exit(text):
+    if text == 'exit':
+        sys.exit()
 
-    if name == 'exit':
-        break
 
-    print(websites[name])
+def try_back(text, history):
+    if text == 'back':
+        if history:
+            history.pop()
+            if history:
+                return history.pop()
+
+        return None
+
+    return text
+
+
+def is_correct(text):
+    return '.' in text
+
+
+def contains(text, cur_list):
+    return text in cur_list
+
+
+def file_name(text):
+    dot_index = text.index('.')
+    return text[:dot_index]
+
+
+def work_with_dir():
+    dir_path = sys.argv[1]
+    if not os.path.exists(dir_path):
+        os.mkdir(dir_path)
+    os.chdir(dir_path)
+
+
+def work_with_files(name, stack):
+    websites = {'bloomberg.com': bloomberg_com, 'nytimes.com': nytimes_com}
+
+    if os.path.exists(name):
+        with open(name, 'r', encoding='utf-8') as old_f:
+            for line in old_f:
+                print(line, end='')
+            print()
+    elif is_correct(name) and contains(name, websites.keys()):
+        with open(file_name(name), 'w', encoding='utf-8') as new_f:
+            print(websites[name])
+            new_f.write(websites[name])
+            stack.append(name)
+    else:
+        print('Invalid URL')
+
+
+def main():
+    work_with_dir()
+
+    history = deque()
+
+    while True:
+        name = input()
+        try_exit(name)
+
+        name = try_back(name, history)
+        if not name:
+            continue
+
+        work_with_files(name, history)
+
+
+if __name__ == '__main__':
+    main()
